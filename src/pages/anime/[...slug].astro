@@ -1,0 +1,123 @@
+---
+import AnimeDetail from "../../components/AnimeDetail.astro";
+import axios from "axios";
+import cheerio from "cheerio";
+type slug = any
+const {slug}:any = Astro.params
+
+const mob = slug.toLowerCase().includes("mob-psycho");
+const uzaki = slug.toLowerCase().includes("uzaki");
+const url = mob
+  ? slug.toLowerCase().split("-season")[0] + "-iii-sub-indo"
+  : uzaki
+  ? slug.toLowerCase().replace("!", "").split("-season")[0] + "-double-sub-indo"
+  : slug.toLowerCase().split("-episode")[0] + "-sub-indo";
+// console.log(url)
+const response = await axios.get(`${import.meta.env.URL + url}`);
+const data = response.data;
+// console.log(data)
+const $ = cheerio.load(data);
+const el = ".entry-content > ul > ";
+const title = $("header > .entry-title").text();
+const titleAlternative = $(el + "li:nth-child(2)")
+  .text()
+  .substring(19);
+const type = $(el + "li:nth-child(3) > a").text();
+const status = $(el + "li:nth-child(4)")
+  .text()
+  .substring(15);
+const episode = $(el + "li:nth-child(5)")
+  .text()
+  .substring(17);
+const season = $(el + "li:nth-child(6)")
+  .text()
+  .substring(14);
+const date = $(el + "li:nth-child(7)")
+  .text()
+  .substring(16);
+const studio = $(el + "li.Studiox > a").text();
+const genre = $(el + "li.Genrex > a")
+  .toArray()
+  .map((i) => $(i).text());
+const score = $(el + "li:nth-child(11)")
+  .text()
+  .substring(22);
+const findTitle =
+  slug.toLowerCase().includes("one-piece") ||
+  slug.toLowerCase().includes("boruto")
+    ? $(`div.dlx > table[style='width: 100%']`)
+        .toArray()
+        .map((i) => $(i).text().trim())
+        .find((i) => i.includes(slug.toLowerCase().split("episode-")[1]))
+    : $("div.dlx > h4")
+        .toArray()
+        .map((i) => $(i).text())
+        .find((i) => i.includes(slug.toLowerCase().split("episode-")[1]));
+console.log(findTitle)
+if(!findTitle) {
+    return Astro.redirect('/404')
+}
+const qu = [];
+let quality;
+let link;
+const downloadLink =
+  slug.toLowerCase().includes("one-piece") ||
+  slug.toLowerCase().includes("boruto")
+    ? $(`.dlx > table[style='width: 100%']:contains(${findTitle})`)
+        .next()
+        .find("tr")
+        .each((i, el) => {
+          const qua = $(el).find("strong").text();
+          const li = $(el)
+            .find("td > a")
+            .toArray()
+            .map((i) => $(i).attr("href"));
+          if (qua.length > 1) {
+            quality = qua;
+          }
+          if (li.length > 1) {
+            link = li;
+            qu.push({
+              quality,
+              link,
+            });
+          }
+        })
+    : $(`.dlx > h4:contains(${findTitle})`)
+        .next()
+        .find("tr")
+        .each((i, el) => {
+          const qua = $(el).find("strong").text();
+          const li = $(el)
+            .find("td > span > a")
+            .toArray()
+            .map((i) => $(i).attr("href"));
+          if (qua.length > 1) {
+            quality = qua;
+          }
+          if (li.length > 1) {
+            link = li;
+            qu.push({
+              quality,
+              link,
+            });
+          }
+          // $(el).find('strong').text()
+          // $(el).find('td > span > a').attr('href')
+        });
+let obj = {
+  title,
+  titleAlternative,
+  type,
+  status,
+  episode,
+  season,
+  date,
+  studio,
+  genre,
+  score,
+  downloadLink: qu,
+};
+---
+
+<AnimeDetail slug={slug} data={obj} findTitle={findTitle} axios={axios} cheerio={cheerio} />

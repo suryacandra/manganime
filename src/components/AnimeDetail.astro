@@ -1,0 +1,49 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const {slug, data:obj, axios, cheerio, findTitle} = Astro.props
+
+const urlStream = obj.downloadLink
+  .find((i) => i.quality.includes("720p"))
+  .link.find((i) => i.includes("kraken"));
+const streamData = urlStream && (await axios.get(urlStream));
+const streamAs = streamData && streamData.data;
+const streamA = streamAs && cheerio.load(streamAs);
+const aku = streamA && streamA("#my-video > source").attr("src").substring(2);
+// console.log(aku);
+---
+
+<Layout title={slug.toString()}>
+  <div class="w-full">
+    <div class="flex flex-col w-full items-center">
+      <h1>{findTitle.split("~")[0].trim()}</h1>
+      {
+        aku ? (
+          <div class="w-3/4 self-center">
+            <video id="player" playsinline controls class="w-full">
+              <source src={`https://${aku}`} />
+            </video>
+          </div>
+        ) : (
+          <span>Maaf, streaming belum tersedia</span>
+        )
+      }
+    </div>
+  </div>
+  <script src="https://cdn.plyr.io/3.7.3/plyr.polyfilled.js"></script>
+  <script>
+    import Plyr from "plyr";
+    const player = new Plyr("#player");
+
+    const video = document.getElementById("player");
+    video.onplay = (e) => {
+      video.classList.remove("unredi");
+    };
+  </script>
+</Layout>
+
+<style>
+  .unredi {
+    visibility: hidden;
+  }
+</style>
