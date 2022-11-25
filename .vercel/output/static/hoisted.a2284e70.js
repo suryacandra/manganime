@@ -1,1 +1,0 @@
-import{P as o}from"./chunks/plyr.min.e7153a1d.js";import"https://cdn.plyr.io/3.7.3/plyr.polyfilled.js";new o("#player");const e=document.getElementById("player");e.onplay=r=>{e.classList.remove("unredi")};

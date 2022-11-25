@@ -13,6 +13,8 @@ pnpm-debug.log*
 
 
 # environment variables
+.vercel
+.vscode
 .env
 .env.production
 
