@@ -10,7 +10,7 @@ const streamData = urlStream && (await axios.get(urlStream));
 const streamAs = streamData && streamData.data;
 const streamA = streamAs && cheerio.load(streamAs);
 const aku = streamA && streamA("#my-video > source").attr("src").substring(2);
-// console.log(aku);
+console.log(aku);
 ---
 
 <Layout title={slug.toString()}>
@@ -23,6 +23,7 @@ const aku = streamA && streamA("#my-video > source").attr("src").substring(2);
             <video id="player" playsinline controls class="w-full">
               <source src={`https://${aku}`} />
             </video>
+            <a href={aku}>Download</a>
           </div>
         ) : (
           <span>Maaf, streaming belum tersedia</span>
